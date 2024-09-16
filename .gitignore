@@ -1,0 +1,7 @@
+# files git does not track
+############################
+
+# Virtual Enviornments #
+########################
+.venv
+venv
