@@ -1,0 +1,28 @@
+Screen {
+    align: center middle;
+}
+
+SportsScreen {
+    align: center middle;
+}
+
+.sport {
+    width: 60;
+    height: auto;
+    text-align: center;
+}
+
+ListView {
+    width: 30;
+    height: auto;
+    margin: 2 2;
+}
+
+ListItem {
+    align: center middle;
+    height: 3;
+}
+
+Label {
+    padding: 0 2 0 0;
+}
