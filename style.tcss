@@ -4,12 +4,15 @@ Screen {
 
 SportsScreen {
     align: center middle;
+    text-align: center;
 }
 
-.sport {
+.top {
     width: 60;
-    height: auto;
-    text-align: center;
+}
+
+.bottom {
+    width: 80;
 }
 
 ListView {

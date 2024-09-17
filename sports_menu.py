@@ -4,28 +4,53 @@ import os
 import pandas as pd
 from bs4 import BeautifulSoup 
 from requests import get 
-from tabulate import tabulate
+import pyfiglet
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, ListView, ListItem
 from textual.widgets import Label, Pretty, Rule
-from textual.widget import Widget
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.reactive import reactive
-from textual.containers import Vertical, Container
+from textual.containers import Container, ScrollableContainer
+
+class SportsTableContainer(ScrollableContainer):
+    BINDINGS = [
+            Binding("up", "scroll_up", "Scroll Up", show=False),
+            Binding("k", "scroll_up", "Scroll Up", show=False),
+            Binding("down", "scroll_down", "Scroll Down", show=False),
+            Binding("j", "scroll_down", "Scroll Down", show=False),
+            ]
+
 
 class SportsScreen(Screen):
 
     BINDINGS = [("escape", "app.pop_screen", "Back")]
 
     sport_name = reactive('sport', recompose=True)
-
+    
     def compose(self):
+
+        # get schedule from url and create dataframe
+        url = 'https://www.cbssports.com/{}/schedule/'.format(self.sport_name)
+        df = pd.read_html(url)
+
+        # get dates from bs4
+        url_date = get('https://www.cbssports.com/{}/schedule/'.format(self.sport_name))
+        soup = BeautifulSoup(url_date.content, 'html.parser')
+        dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
+
         yield Header()
-        yield Label(self.sport_name, classes='sport')
-        yield Rule(line_style='ascii', classes='sport')
-        yield Pretty(run_sport(self.sport_name), classes='sport')
+        with Container(classes='top'):
+            yield Label(pyfiglet.figlet_format(self.sport_name, font='banner'))
+            yield Rule(line_style='ascii')
+        with SportsTableContainer(classes='bottom'):
+            for date,table in zip(dates, df):
+                table = table.iloc[:, 0:3]
+                yield Label(f'[bold purple]{date.text.strip()}[/bold purple]')
+                yield Label('')
+                yield Pretty(table)
+                yield Label('')
         yield Footer()
    
 class SportsListView(ListView):
@@ -72,26 +97,6 @@ class Sports(App):
     def show_sport(self, event):
         self.push_screen('sport')
         self.query_exactly_one(SportsScreen).sport_name = event.item.name
-        
-def run_sport(user_input):
-
-    user_input = user_input.lower()
-
-    # get schedule from url and create dataframe
-    url = 'https://www.cbssports.com/{}/schedule/'.format(user_input)
-    df = pd.read_html(url)
-
-    # get dates from bs4
-    url_date = get('https://www.cbssports.com/{}/schedule/'.format(user_input))
-    soup = BeautifulSoup(url_date.content, 'html.parser')
-    dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
-
-    for table,date in zip(df, dates):
-
-        table = table.iloc[:,0:3]
-
-        #print(date.text.strip())
-        return(table)
         
 ##########################
  
