@@ -4,11 +4,21 @@ Screen {
 
 SportsScreen {
     align: center middle;
-    text-align: center;
 }
 
 .top {
-    width: 60;
+    height: 13;
+    width: 80;
+}
+
+#sportTitle {
+    width: 80;
+    text-align: center;
+    margin: 1 0 0 0;
+}
+
+Pretty {
+    content-align: center middle;
 }
 
 .bottom {

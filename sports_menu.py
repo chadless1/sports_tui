@@ -15,6 +15,7 @@ from textual.reactive import reactive
 from textual.containers import Container, ScrollableContainer
 
 class SportsTableContainer(ScrollableContainer):
+
     BINDINGS = [
             Binding("up", "scroll_up", "Scroll Up", show=False),
             Binding("k", "scroll_up", "Scroll Up", show=False),
@@ -22,10 +23,12 @@ class SportsTableContainer(ScrollableContainer):
             Binding("j", "scroll_down", "Scroll Down", show=False),
             ]
 
-
 class SportsScreen(Screen):
 
-    BINDINGS = [("escape", "app.pop_screen", "Back")]
+    BINDINGS = [
+            ("backspace", "app.pop_screen", "Back"),
+            ("escape", "app.pop_screen", "Back")
+            ]
 
     sport_name = reactive('sport', recompose=True)
     
@@ -42,7 +45,7 @@ class SportsScreen(Screen):
 
         yield Header()
         with Container(classes='top'):
-            yield Label(pyfiglet.figlet_format(self.sport_name, font='banner'))
+            yield Label(pyfiglet.figlet_format(self.sport_name, font='banner4'), id='sportTitle')
             yield Rule(line_style='ascii')
         with SportsTableContainer(classes='bottom'):
             for date,table in zip(dates, df):
@@ -70,10 +73,9 @@ class Sports(App):
     SCREENS = {'sport': SportsScreen}
 
     BINDINGS = [
-            ('escape', 'close_window', 'Exit App'),
-            ('q', 'close_window', 'Exit App'),
+            ('q', 'close_window', 'Exit'),
+            ('escape', 'close_window', 'Exit'),
             ('d', 'toggle_dark', 'Toggle Dark Mode'),
-            ("m", "push_screen('sport')", "Change Window"),
             ]
       
     def compose(self):
