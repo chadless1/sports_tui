@@ -1,6 +1,7 @@
 #!Scripts/.venv/bin/python3
 
 import os 
+import sys
 import pandas as pd
 from bs4 import BeautifulSoup 
 from requests import get 
@@ -8,11 +9,13 @@ import pyfiglet
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, ListView, ListItem
-from textual.widgets import Label, Pretty, Rule
+from textual.widgets import Label, Pretty, Rule, TabbedContent
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.reactive import reactive
 from textual.containers import Container, ScrollableContainer
+
+__version__ = 1.0
 
 class SportsTableContainer(ScrollableContainer):
 
@@ -34,6 +37,7 @@ class SportsScreen(Screen):
     
     def compose(self):
 
+        ## schedule ##
         # get schedule from url and create dataframe
         url = 'https://www.cbssports.com/{}/schedule/'.format(self.sport_name)
         df = pd.read_html(url)
@@ -42,18 +46,46 @@ class SportsScreen(Screen):
         url_date = get('https://www.cbssports.com/{}/schedule/'.format(self.sport_name))
         soup = BeautifulSoup(url_date.content, 'html.parser')
         dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
+        
+        ## standings ##
+        url_standings = 'https://www.cbssports.com/{}/standings/'.format(self.sport_name)
+        df_standings = pd.read_html(url_standings)
 
+        ## injury ##
+        url_injury = 'https://www.cbssports.com/{}/injuries/'.format(self.sport_name)
+        df_injury = pd.read_html(url_injury)
+
+        # get team name from bs4
+        url_team_name = get('https://www.cbssports.com/{}/injuries/'.format(self.sport_name))
+        soup = BeautifulSoup(url_team_name.content, 'html.parser')
+        team_name = soup.find_all('span', {'class': 'TeamName'})
+        
+        ## display content ##
         yield Header()
         with Container(classes='top'):
-            yield Label(pyfiglet.figlet_format(self.sport_name, font='banner4'), id='sportTitle')
+            #yield Label(pyfiglet.figlet_format(self.sport_name, font='small'), id='sportTitle')
+            yield Label(self.sport_name.upper(), id='sportTitle')
             yield Rule(line_style='ascii')
-        with SportsTableContainer(classes='bottom'):
-            for date,table in zip(dates, df):
-                table = table.iloc[:, 0:3]
-                yield Label(f'[bold purple]{date.text.strip()}[/bold purple]')
-                yield Label('')
-                yield Pretty(table)
-                yield Label('')
+        with Container(classes='bottom'):
+            with TabbedContent('Schedule', 'Standings', 'Injury', classes='bottom'):
+                with SportsTableContainer(classes='bottom'):
+                    for date,table in zip(dates, df):
+                        table = table.iloc[:, 0:3]
+                        yield Label(f'[bold purple]{date.text.strip()}[/bold purple]')
+                        yield Label('')
+                        yield Pretty(table)
+                        yield Label('')
+                with SportsTableContainer(classes='bottom'):
+                    for table in df_standings:
+                        table = table.iloc[:, 0:3]
+                        table = table.dropna()
+                        yield Pretty(table)
+                        yield Label('')
+                with SportsTableContainer(classes='bottom'):
+                    for name,table in zip(team_name, df_injury):
+                        yield Label(f'[bold purple]{name.text.strip()}[/bold purple]')
+                        yield Pretty(table)
+                        yield Label('')
         yield Footer()
    
 class SportsListView(ListView):
@@ -104,4 +136,7 @@ class Sports(App):
  
 if __name__ == '__main__':
     app = Sports()
-    app.run()
+    if len(sys.argv) < 2:
+        app.run()
+    elif sys.argv[1] in ['-v', '--version']:
+        print(f'Sports  version {__version__}')
