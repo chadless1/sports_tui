@@ -5,7 +5,7 @@ import sys
 import pandas as pd
 from bs4 import BeautifulSoup 
 from requests import get 
-import pyfiglet
+from tabulate import tabulate
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, ListView, ListItem
@@ -20,10 +20,10 @@ __version__ = 1.0
 class SportsTableContainer(ScrollableContainer):
 
     BINDINGS = [
-            Binding("up", "scroll_up", "Scroll Up", show=False),
             Binding("k", "scroll_up", "Scroll Up", show=False),
-            Binding("down", "scroll_down", "Scroll Down", show=False),
             Binding("j", "scroll_down", "Scroll Down", show=False),
+            Binding("h", "scroll_left", "Scroll Left", show=False),
+            Binding("l", "scroll_right", "Scroll Right", show=False),
             ]
 
 class SportsScreen(Screen):
@@ -68,6 +68,7 @@ class SportsScreen(Screen):
             yield Rule(line_style='ascii')
         with Container(classes='bottom'):
             with TabbedContent('Schedule', 'Standings', 'Injury', classes='bottom'):
+                # schedule
                 with SportsTableContainer(classes='bottom'):
                     for date,table in zip(dates, df):
                         table = table.iloc[:, 0:3]
@@ -75,16 +76,75 @@ class SportsScreen(Screen):
                         yield Label('')
                         yield Pretty(table)
                         yield Label('')
+                # standings
                 with SportsTableContainer(classes='bottom'):
-                    for table in df_standings:
-                        table = table.iloc[:, 0:3]
-                        table = table.dropna()
-                        yield Pretty(table)
+                    if self.sport_name == 'mlb':
+                        df1 = df_standings[1]
+                        df1 = df1.iloc[:, 0:3]
+                        df1 = df1.droplevel(0, axis=1)
+                        df1 = df1.dropna()
+                        df2 = df_standings[3]
+                        df2 = df2.iloc[:, 0:3]
+                        df2 = df2.droplevel(0, axis=1)
+                        df2 = df2.dropna()
+                        yield Label('[bold purple]American[/bold purple]')
+                        yield Pretty(df1)
+                        yield Label('[bold purple]National[/bold purple]')
+                        yield Pretty(df2)
                         yield Label('')
+                    elif self.sport_name == 'nba':
+                        df1 = df_standings[0]
+                        df1 = df1.iloc[:, 1:5]
+                        df1 = df1.droplevel(0, axis=1)
+                        df1 = df1.dropna()
+                        df2 = df_standings[1]
+                        df2 = df2.iloc[:, 1:5]
+                        df2 = df2.droplevel(0, axis=1)
+                        df2 = df2.dropna()
+                        yield Label('[bold purple]Eastern[/bold purple]')
+                        yield Pretty(df1)
+                        yield Label('[bold purple]Western[/bold purple]')
+                        yield Pretty(df2)
+                        yield Label('')
+                    elif self.sport_name == 'nhl':
+                        df1 = df_standings[0]
+                        df1 = df1.iloc[:, 0:6]
+                        df1 = df1.droplevel(0, axis=1)
+                        df1 = df1.dropna()
+                        df2 = df_standings[1]
+                        df2 = df2.iloc[:, 0:6]
+                        df2 = df2.droplevel(0, axis=1)
+                        df2 = df2.dropna()
+                        yield Label('[bold purple]Eastern[/bold purple]')
+                        yield Pretty(df1)
+                        yield Label('[bold purple]Western[/bold purple]')
+                        yield Pretty(df2)
+                        yield Label('')
+                    elif self.sport_name == 'nfl':
+                        df1 = df_standings[0]
+                        df1 = df1.iloc[:, 0:4]
+                        df1 = df1.droplevel(0, axis=1)
+                        df1 = df1.dropna()
+                        df2 = df_standings[1]
+                        df2 = df2.iloc[:, 0:4]
+                        df2 = df2.droplevel(0, axis=1)
+                        df2 = df2.dropna()
+                        yield Label('[bold purple]AFC[/bold purple]')
+                        yield Pretty(df1)
+                        yield Label('[bold purple]NFC[/bold purple]')
+                        yield Pretty(df2)
+                        yield Label('')
+
+                # injury
                 with SportsTableContainer(classes='bottom'):
                     for name,table in zip(team_name, df_injury):
-                        yield Label(f'[bold purple]{name.text.strip()}[/bold purple]')
-                        yield Pretty(table)
+                        table['first_name'] = table['Player'].str.split().str[0]
+                        table['last_name'] = table['Player'].str.split().str[2]
+                        table['Player'] = table['first_name'] + table['last_name']
+                        table = table.drop(['first_name', 'last_name'], axis=1)
+                        yield Label(f'[bold purple][u]{name.text.strip()}[/u][/bold purple]')
+                        yield Label('')
+                        yield Label(tabulate(table, headers='keys', showindex=False))
                         yield Label('')
         yield Footer()
    
@@ -92,9 +152,7 @@ class SportsListView(ListView):
 
     BINDINGS = [
             Binding("enter", "select_cursor", "Select", show=False),
-            Binding("up", "cursor_up", "Cursor Up", show=False),
             Binding("k", "cursor_up", "Cursor Up", show=False),
-            Binding("down", "cursor_down", "Cursor Down", show=False),
             Binding("j", "cursor_down", "Cursor Down", show=False),
             ]
     

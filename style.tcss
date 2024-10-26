@@ -8,11 +8,11 @@ SportsScreen {
 
 .top {
     height: 6;
-    width: 90;
+    width: 98;
 }
 
 #sportTitle {
-    width: 90;
+    width: 98;
     text-align: center;
     margin: 1 0 0 0;
 }
@@ -22,7 +22,7 @@ Pretty {
 }
 
 .bottom {
-    width: 90;
+    width: 98;
 }
 
 ListView {
