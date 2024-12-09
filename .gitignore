@@ -4,8 +4,8 @@
 
 # folders git does not track #
 ##############################
-build/
-dist/
+build
+dist
 
 # Virtual Enviornments #
 ########################
