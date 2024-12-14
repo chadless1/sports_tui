@@ -1,4 +1,12 @@
-#!Scripts/.venv/bin/python3
+#!/usr/bin/env python3
+#
+# BY: chadless1
+#
+# DESCRIPTION:
+#
+# a simple sports tui app
+#
+# select sport and view data
 
 import os 
 import sys

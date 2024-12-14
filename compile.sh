@@ -4,4 +4,6 @@
 #
 # DESCRIPTION:
 # 
-pyinstaller --collect-all pyfiglet --onefile --add-data 'style.tcss:.' --name 'sports' sports_menu.py
+# script using pyinstaller to create executable file
+#
+pyinstaller --collect-all pyfiglet --onefile --add-data 'style.tcss:.' --name 'sports' sports_tui.py
