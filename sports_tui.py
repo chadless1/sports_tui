@@ -10,6 +10,7 @@
 
 import os 
 import sys
+import itertools
 import pandas as pd
 from bs4 import BeautifulSoup 
 from requests import get 
@@ -54,6 +55,7 @@ class SportsScreen(Screen):
         url_date = get('https://www.cbssports.com/{}/schedule/'.format(self.sport_name))
         soup = BeautifulSoup(url_date.content, 'html.parser')
         dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
+        dates_list = [d.text.strip() for d in dates]
         
         ## standings ##
         url_standings = 'https://www.cbssports.com/{}/standings/'.format(self.sport_name)
@@ -78,9 +80,9 @@ class SportsScreen(Screen):
             with TabbedContent('Schedule', 'Standings', 'Injury', classes='bottom'):
                 # schedule
                 with SportsTableContainer(classes='bottom'):
-                    for date,table in zip(dates, df):
+                    for date,table in itertools.zip_longest(dates_list, df, fillvalue=' '):
                         table = table.iloc[:, 0:3]
-                        yield Label(f'[bold purple]{date.text.strip()}[/bold purple]')
+                        yield Label(f'[bold purple]{date}[/bold purple]')
                         yield Label('')
                         yield Pretty(table)
                         yield Label('')
