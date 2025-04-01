@@ -18,13 +18,13 @@ from tabulate import tabulate
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, ListView, ListItem
-from textual.widgets import Label, Pretty, Rule, TabbedContent
+from textual.widgets import Label, Pretty, Rule, TabbedContent, Markdown
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.reactive import reactive
 from textual.containers import Container, ScrollableContainer
 
-__version__ = 1.0
+__version__ = 1.1
 
 class SportsTableContainer(ScrollableContainer):
 
@@ -82,10 +82,11 @@ class SportsScreen(Screen):
                 with SportsTableContainer(classes='bottom'):
                     for date,table in itertools.zip_longest(dates_list, df, fillvalue=' '):
                         table = table.iloc[:, 0:3]
+                        table_md = table.to_markdown(index=False)
                         yield Label(f'[bold purple]{date}[/bold purple]')
                         yield Label('')
-                        yield Pretty(table)
-                        yield Label('')
+                        yield Markdown(table_md, classes='mrkdown')
+                        #yield Label('')
                 # standings
                 with SportsTableContainer(classes='bottom'):
                     if self.sport_name == 'mlb':
@@ -93,56 +94,72 @@ class SportsScreen(Screen):
                         df1 = df1.iloc[:, 0:3]
                         df1 = df1.droplevel(0, axis=1)
                         df1 = df1.dropna()
+                        df1_md = df1.to_markdown(index=False)
                         df2 = df_standings[3]
                         df2 = df2.iloc[:, 0:3]
                         df2 = df2.droplevel(0, axis=1)
                         df2 = df2.dropna()
-                        yield Label('[bold purple]American[/bold purple]')
-                        yield Pretty(df1)
-                        yield Label('[bold purple]National[/bold purple]')
-                        yield Pretty(df2)
+                        df2_md = df2.to_markdown(index=False)
+                        yield Label('[bold purple][u]American[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df1_md)
+                        yield Label('[bold purple][u]National[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df2_md)
                         yield Label('')
                     elif self.sport_name == 'nba':
                         df1 = df_standings[0]
                         df1 = df1.iloc[:, 1:5]
                         df1 = df1.droplevel(0, axis=1)
                         df1 = df1.dropna()
+                        df1_md = df1.to_markdown(index=False)
                         df2 = df_standings[1]
                         df2 = df2.iloc[:, 1:5]
                         df2 = df2.droplevel(0, axis=1)
                         df2 = df2.dropna()
-                        yield Label('[bold purple]Eastern[/bold purple]')
-                        yield Pretty(df1)
-                        yield Label('[bold purple]Western[/bold purple]')
-                        yield Pretty(df2)
+                        df2_md = df2.to_markdown(index=False)
+                        yield Label('[bold purple][u]Eastern[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df1_md)
+                        yield Label('[bold purple][u]Western[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df2_md)
                         yield Label('')
                     elif self.sport_name == 'nhl':
                         df1 = df_standings[0]
                         df1 = df1.iloc[:, 0:6]
                         df1 = df1.droplevel(0, axis=1)
                         df1 = df1.dropna()
+                        df1_md = df1.to_markdown(index=False)
                         df2 = df_standings[1]
                         df2 = df2.iloc[:, 0:6]
                         df2 = df2.droplevel(0, axis=1)
                         df2 = df2.dropna()
-                        yield Label('[bold purple]Eastern[/bold purple]')
-                        yield Pretty(df1)
-                        yield Label('[bold purple]Western[/bold purple]')
-                        yield Pretty(df2)
+                        df2_md = df2.to_markdown(index=False)
+                        yield Label('[bold purple][u]Eastern[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df1_md)
+                        yield Label('[bold purple][u]Western[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df2_md)
                         yield Label('')
                     elif self.sport_name == 'nfl':
                         df1 = df_standings[0]
                         df1 = df1.iloc[:, 0:4]
                         df1 = df1.droplevel(0, axis=1)
                         df1 = df1.dropna()
+                        df1_md = df1.to_markdown(index=False)
                         df2 = df_standings[1]
                         df2 = df2.iloc[:, 0:4]
                         df2 = df2.droplevel(0, axis=1)
                         df2 = df2.dropna()
-                        yield Label('[bold purple]AFC[/bold purple]')
-                        yield Pretty(df1)
-                        yield Label('[bold purple]NFC[/bold purple]')
-                        yield Pretty(df2)
+                        df2_md = df2.to_markdown(index=False)
+                        yield Label('[bold purple][u]AFC[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df1_md)
+                        yield Label('[bold purple][u]NFC[/u][/bold purple]')
+                        yield Label('')
+                        yield Markdown(df2_md)
                         yield Label('')
 
                 # injury
@@ -152,9 +169,10 @@ class SportsScreen(Screen):
                         table['last_name'] = table['Player'].str.split().str[2]
                         table['Player'] = table['first_name'] + table['last_name']
                         table = table.drop(['first_name', 'last_name'], axis=1)
+                        table_md = table.to_markdown(index=False)
                         yield Label(f'[bold purple][u]{name.text.strip()}[/u][/bold purple]')
                         yield Label('')
-                        yield Label(tabulate(table, headers='keys', showindex=False))
+                        yield Markdown(table_md)
                         yield Label('')
         yield Footer()
    
@@ -180,7 +198,7 @@ class Sports(App):
       
     def compose(self):
         yield Header()
-        yield Label(' Select Sport ...')
+        yield Label(' Select a Sport ...')
         yield SportsListView(
                 ListItem(Label(':baseball: MLB'), name='mlb'),
                 ListItem(Label(':basketball: NBA'), name='nba'),
