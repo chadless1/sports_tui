@@ -7,33 +7,30 @@
 # a simple sports tui app
 #
 # select sport and view data
+#  - schedule
+#  - standings
+#  - injury Report
 
-import os 
 import sys
-import itertools
 import pandas as pd
 from bs4 import BeautifulSoup 
 from requests import get 
-from tabulate import tabulate
 from textual import on
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.widgets import Header, Footer, ListView, ListItem
-from textual.widgets import Label, Pretty, Rule, TabbedContent, Markdown
+from textual.widgets import Label, Rule, TabbedContent, Markdown
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.reactive import reactive
 from textual.containers import Container, ScrollableContainer
+from textual import work
+from textual.lazy import Lazy
+from sprtmods.standings import StandingsContainer
+from sprtmods.schedule import ScheduleContainer
+from sprtmods.injury import InjuryContainer
 
 __version__ = 1.1
-
-class SportsTableContainer(ScrollableContainer):
-
-    BINDINGS = [
-            Binding("k", "scroll_up", "Scroll Up", show=False),
-            Binding("j", "scroll_down", "Scroll Down", show=False),
-            Binding("h", "scroll_left", "Scroll Left", show=False),
-            Binding("l", "scroll_right", "Scroll Right", show=False),
-            ]
 
 class SportsScreen(Screen):
 
@@ -45,137 +42,21 @@ class SportsScreen(Screen):
     sport_name = reactive('sport', recompose=True)
     
     def compose(self):
-
-        ## schedule ##
-        # get schedule from url and create dataframe
-        url = 'https://www.cbssports.com/{}/schedule/'.format(self.sport_name)
-        df = pd.read_html(url)
-
-        # get dates from bs4
-        url_date = get('https://www.cbssports.com/{}/schedule/'.format(self.sport_name))
-        soup = BeautifulSoup(url_date.content, 'html.parser')
-        dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
-        dates_list = [d.text.strip() for d in dates]
-        
-        ## standings ##
-        url_standings = 'https://www.cbssports.com/{}/standings/'.format(self.sport_name)
-        df_standings = pd.read_html(url_standings)
-
-        ## injury ##
-        url_injury = 'https://www.cbssports.com/{}/injuries/'.format(self.sport_name)
-        df_injury = pd.read_html(url_injury)
-
-        # get team name from bs4
-        url_team_name = get('https://www.cbssports.com/{}/injuries/'.format(self.sport_name))
-        soup = BeautifulSoup(url_team_name.content, 'html.parser')
-        team_name = soup.find_all('span', {'class': 'TeamName'})
         
         ## display content ##
         yield Header()
         with Container(classes='top'):
             #yield Label(pyfiglet.figlet_format(self.sport_name, font='small'), id='sportTitle')
             yield Label(self.sport_name.upper(), id='sportTitle')
-            yield Rule(line_style='ascii')
+            yield Rule(line_style='heavy')
         with Container(classes='bottom'):
-            with TabbedContent('Schedule', 'Standings', 'Injury', classes='bottom'):
-                # schedule
-                with SportsTableContainer(classes='bottom'):
-                    for date,table in itertools.zip_longest(dates_list, df, fillvalue=' '):
-                        table = table.iloc[:, 0:3]
-                        table_md = table.to_markdown(index=False)
-                        yield Label(f'[bold purple]{date}[/bold purple]')
-                        yield Label('')
-                        yield Markdown(table_md, classes='mrkdown')
-                        #yield Label('')
-                # standings
-                with SportsTableContainer(classes='bottom'):
-                    if self.sport_name == 'mlb':
-                        df1 = df_standings[1]
-                        df1 = df1.iloc[:, 0:3]
-                        df1 = df1.droplevel(0, axis=1)
-                        df1 = df1.dropna()
-                        df1_md = df1.to_markdown(index=False)
-                        df2 = df_standings[3]
-                        df2 = df2.iloc[:, 0:3]
-                        df2 = df2.droplevel(0, axis=1)
-                        df2 = df2.dropna()
-                        df2_md = df2.to_markdown(index=False)
-                        yield Label('[bold purple][u]American[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df1_md)
-                        yield Label('[bold purple][u]National[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df2_md)
-                        yield Label('')
-                    elif self.sport_name == 'nba':
-                        df1 = df_standings[0]
-                        df1 = df1.iloc[:, 1:5]
-                        df1 = df1.droplevel(0, axis=1)
-                        df1 = df1.dropna()
-                        df1_md = df1.to_markdown(index=False)
-                        df2 = df_standings[1]
-                        df2 = df2.iloc[:, 1:5]
-                        df2 = df2.droplevel(0, axis=1)
-                        df2 = df2.dropna()
-                        df2_md = df2.to_markdown(index=False)
-                        yield Label('[bold purple][u]Eastern[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df1_md)
-                        yield Label('[bold purple][u]Western[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df2_md)
-                        yield Label('')
-                    elif self.sport_name == 'nhl':
-                        df1 = df_standings[0]
-                        df1 = df1.iloc[:, 0:6]
-                        df1 = df1.droplevel(0, axis=1)
-                        df1 = df1.dropna()
-                        df1_md = df1.to_markdown(index=False)
-                        df2 = df_standings[1]
-                        df2 = df2.iloc[:, 0:6]
-                        df2 = df2.droplevel(0, axis=1)
-                        df2 = df2.dropna()
-                        df2_md = df2.to_markdown(index=False)
-                        yield Label('[bold purple][u]Eastern[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df1_md)
-                        yield Label('[bold purple][u]Western[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df2_md)
-                        yield Label('')
-                    elif self.sport_name == 'nfl':
-                        df1 = df_standings[0]
-                        df1 = df1.iloc[:, 0:4]
-                        df1 = df1.droplevel(0, axis=1)
-                        df1 = df1.dropna()
-                        df1_md = df1.to_markdown(index=False)
-                        df2 = df_standings[1]
-                        df2 = df2.iloc[:, 0:4]
-                        df2 = df2.droplevel(0, axis=1)
-                        df2 = df2.dropna()
-                        df2_md = df2.to_markdown(index=False)
-                        yield Label('[bold purple][u]AFC[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df1_md)
-                        yield Label('[bold purple][u]NFC[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(df2_md)
-                        yield Label('')
-
-                # injury
-                with SportsTableContainer(classes='bottom'):
-                    for name,table in zip(team_name, df_injury):
-                        table['first_name'] = table['Player'].str.split().str[0]
-                        table['last_name'] = table['Player'].str.split().str[2]
-                        table['Player'] = table['first_name'] + table['last_name']
-                        table = table.drop(['first_name', 'last_name'], axis=1)
-                        table_md = table.to_markdown(index=False)
-                        yield Label(f'[bold purple][u]{name.text.strip()}[/u][/bold purple]')
-                        yield Label('')
-                        yield Markdown(table_md)
-                        yield Label('')
+            with TabbedContent('Schedule', 'Standings', 'Injury Report', classes='bottom'):
+                yield Lazy(ScheduleContainer(self.sport_name, 'schedule'))
+                yield Lazy(StandingsContainer(self.sport_name, 'standings'))
+                yield Lazy(InjuryContainer(self.sport_name, 'injury'))
         yield Footer()
-   
+
+        
 class SportsListView(ListView):
 
     BINDINGS = [
@@ -183,6 +64,7 @@ class SportsListView(ListView):
             Binding("k", "cursor_up", "Cursor Up", show=False),
             Binding("j", "cursor_down", "Cursor Down", show=False),
             ]
+
     
 class Sports(App):
     
