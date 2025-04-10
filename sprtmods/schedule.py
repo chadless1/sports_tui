@@ -16,9 +16,10 @@ from bs4 import BeautifulSoup
 from requests import get 
 from textual.binding import Binding
 from textual import on
-from textual.widgets import Label, Markdown
+from textual.widgets import Label, Markdown, Select
 from textual.containers import ScrollableContainer
 from textual import work
+from datetime import datetime, timedelta
 
 class ScheduleContainer(ScrollableContainer):
 
@@ -32,18 +33,39 @@ class ScheduleContainer(ScrollableContainer):
     def __init__(self, sport, id):
         self.sport = sport
         super().__init__(id=id)
-    
+   
+    def compose(self):
+        date_options = ['Yesterday', 'Today', 'Tomorrow']
+        yield Select.from_values(date_options, value=date_options[1])
+
     async def on_mount(self):
-        self.load_data()
+        select_date = self.query_one(Select)
+        self.load_data(select_date.value)
     
+    @on(Select.Changed)
+    def select_change(self, event):
+        self.load_data(event.value)
+
     @work(exclusive=True)
-    async def load_data(self):
+    async def load_data(self, date):
+        # delete contents for change
+        lb = self.query(Label).remove()
+        md = self.query(Markdown).remove()
+
+        # create date objects
+        today = datetime.today().strftime('%Y%m%d')
+        tomorrow = (datetime.today() + timedelta(days=1)).strftime('%Y%m%d')
+        yesterday = (datetime.today() + timedelta(days=-1)).strftime('%Y%m%d')
+        date_dic = {'Yesterday': yesterday, 'Today': today, 'Tomorrow': tomorrow}
+        
         # get schedule from url and create dataframe
-        url = 'https://www.cbssports.com/{}/schedule/'.format(self.sport)
+        url = 'https://www.cbssports.com/{}/schedule/{}'.format(self.sport,
+                    date_dic[date])
         df = pd.read_html(url)
 
         # get dates from bs4
-        url_date = get('https://www.cbssports.com/{}/schedule/'.format(self.sport))
+        url_date = get('https://www.cbssports.com/{}/schedule/{}'.format(self.sport,
+                    date_dic[date]))
         soup = BeautifulSoup(url_date.content, 'html.parser')
         dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
         dates_list = [d.text.strip() for d in dates]
@@ -51,6 +73,7 @@ class ScheduleContainer(ScrollableContainer):
         for date,table in zip(dates_list, df):
             table = table.iloc[:, 0:4]
             table = table.to_markdown(index=False)
+            self.mount(Label(''))
             self.mount(Label(f'[bold purple]{date}[/bold purple]'))           
             self.mount(Label(''))
             self.mount(Markdown(table, classes='mrkdown'))
