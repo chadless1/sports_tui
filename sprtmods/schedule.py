@@ -11,6 +11,7 @@
 #  - standings
 #  - injury Report
 
+import itertools
 import pandas as pd
 from bs4 import BeautifulSoup 
 from requests import get 
@@ -70,7 +71,8 @@ class ScheduleContainer(ScrollableContainer):
         dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
         dates_list = [d.text.strip() for d in dates]
         
-        for date,table in zip(dates_list, df):
+        # loop and display
+        for date,table in itertools.zip_longest(dates_list, df, fillvalue=' '):
             table = table.iloc[:, 0:4]
             table = table.to_markdown(index=False)
             self.mount(Label(''))
