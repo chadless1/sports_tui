@@ -18,10 +18,6 @@ SportsScreen {
     background: #636363;
 }
 
-Pretty {
-    content-align: center middle;
-}
-
 .bottom {
     width: 98;
 }
@@ -30,6 +26,7 @@ Pretty {
     padding: 0 0 -1 0;
 
 }
+
 ListView {
     width: 30;
     height: auto;
@@ -43,4 +40,10 @@ ListItem {
 
 Label {
     padding: 0 2 0 0;
+}
+
+#errmsg {
+    width: 90;
+    text-align: center;
+    margin-top: 4;
 }

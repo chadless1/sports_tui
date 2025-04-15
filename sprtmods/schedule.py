@@ -62,21 +62,25 @@ class ScheduleContainer(ScrollableContainer):
         # get schedule from url and create dataframe
         url = 'https://www.cbssports.com/{}/schedule/{}'.format(self.sport,
                     date_dic[date])
-        df = pd.read_html(url)
 
-        # get dates from bs4
-        url_date = get('https://www.cbssports.com/{}/schedule/{}'.format(self.sport,
-                    date_dic[date]))
-        soup = BeautifulSoup(url_date.content, 'html.parser')
-        dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
-        dates_list = [d.text.strip() for d in dates]
-        
-        # loop and display
-        for date,table in itertools.zip_longest(dates_list, df, fillvalue=' '):
-            table = table.iloc[:, 0:4]
-            table = table.to_markdown(index=False)
-            self.mount(Label(''))
-            self.mount(Label(f'[bold purple]{date}[/bold purple]'))           
-            self.mount(Label(''))
-            self.mount(Markdown(table, classes='mrkdown'))
+        try:
+            df = pd.read_html(url)
+
+            # get dates from bs4
+            url_date = get('https://www.cbssports.com/{}/schedule/{}'.format(self.sport,
+                        date_dic[date]))
+            soup = BeautifulSoup(url_date.content, 'html.parser')
+            dates = soup.find_all('h4', {'class': 'TableBase-title TableBase-title--large'})
+            dates_list = [d.text.strip() for d in dates]
+            
+            # loop and display
+            for date,table in itertools.zip_longest(dates_list, df, fillvalue=' '):
+                table = table.iloc[:, 0:4]
+                table = table.to_markdown(index=False)
+                self.mount(Label(''))
+                self.mount(Label(f'[bold purple]{date}[/bold purple]'))           
+                self.mount(Label(''))
+                self.mount(Markdown(table, classes='mrkdown'))
+        except ValueError:
+            self.mount(Label('No Data found for selection', id='errmsg'))
 

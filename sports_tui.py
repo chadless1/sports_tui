@@ -19,7 +19,7 @@ from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Header, Footer, ListView, ListItem
-from textual.widgets import Label, Rule, TabbedContent, Markdown
+from textual.widgets import Label, Rule, TabbedContent
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.reactive import reactive
