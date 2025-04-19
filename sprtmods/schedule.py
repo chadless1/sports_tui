@@ -4,12 +4,12 @@
 #
 # DESCRIPTION:
 #
-# a simple sports tui app
-#
-# select sport and view data
-#  - schedule
-#  - standings
-#  - injury Report
+# container to display selected sport schedule
+# defaults to current day
+# options:
+#   - yesterday
+#   - today
+#   - tomorrow
 
 import itertools
 import pandas as pd
@@ -23,7 +23,7 @@ from textual import work
 from datetime import datetime, timedelta
 
 class ScheduleContainer(ScrollableContainer):
-
+    # vim bindings
     BINDINGS = [
             Binding("k", "scroll_up", "Scroll Up", show=False),
             Binding("j", "scroll_down", "Scroll Down", show=False),

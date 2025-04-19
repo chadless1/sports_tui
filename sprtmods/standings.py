@@ -4,12 +4,7 @@
 #
 # DESCRIPTION:
 #
-# a simple sports tui app
-#
-# select sport and view data
-#  - schedule
-#  - standings
-#  - injury Report
+# container to display sport standings
 
 import pandas as pd
 from bs4 import BeautifulSoup 
@@ -21,7 +16,7 @@ from textual.containers import Container, ScrollableContainer
 from textual import work
 
 class StandingsContainer(ScrollableContainer):
-
+    # vim bindings
     BINDINGS = [
             Binding("k", "scroll_up", "Scroll Up", show=False),
             Binding("j", "scroll_down", "Scroll Down", show=False),

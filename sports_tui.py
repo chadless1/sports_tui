@@ -6,7 +6,7 @@
 #
 # a simple sports tui app
 #
-# select sport and view data
+# select sport and view 
 #  - schedule
 #  - standings
 #  - injury Report
@@ -33,7 +33,7 @@ from sprtmods.injury import InjuryContainer
 __version__ = 1.1
 
 class SportsScreen(Screen):
-
+    #display selected sport info
     BINDINGS = [
             ("backspace", "app.pop_screen", "Back"),
             ("escape", "app.pop_screen", "Back")
@@ -58,7 +58,7 @@ class SportsScreen(Screen):
 
         
 class SportsListView(ListView):
-
+    #add vim keybinds to listview
     BINDINGS = [
             Binding("enter", "select_cursor", "Select", show=False),
             Binding("k", "cursor_up", "Cursor Up", show=False),
@@ -67,7 +67,7 @@ class SportsListView(ListView):
 
     
 class Sports(App):
-    
+
     CSS_PATH = 'style.tcss'
     
     SCREENS = {'sport': SportsScreen}
