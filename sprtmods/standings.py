@@ -40,7 +40,7 @@ class StandingsContainer(ScrollableContainer):
 
         if self.sport == 'mlb':
             df1 = df[1]
-            df1 = df1.iloc[:, 0:3]
+            df1 = df1.iloc[:, [0, 1, 2, 4]]
             df1 = df1.droplevel(0, axis=1)
             df1 = df1.dropna()
             df1_md = df1.to_markdown(index=False)
@@ -58,7 +58,7 @@ class StandingsContainer(ScrollableContainer):
             self.mount(Label(''))
         elif self.sport == 'nba':
             df1 = df[0]
-            df1 = df1.iloc[:, 1:5]
+            df1 = df1.iloc[:, [1, 2, 3, 5]]
             df1 = df1.droplevel(0, axis=1)
             df1 = df1.dropna()
             df1_md = df1.to_markdown(index=False)
